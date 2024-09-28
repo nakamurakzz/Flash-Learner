@@ -1,0 +1,486 @@
+openapi: 3.0.0
+info:
+  title: SentenceGroup and Sentence API
+  version: 1.1.0
+  description: API for managing SentenceGroups and Sentences with Token-based Pagination, Filtering, and Sorting
+servers:
+  - url: http://localhost:8000
+    description: Local server
+security:
+  - Bearer: []
+
+paths:
+  /sentences:generate:
+    post:
+      summary: Generate sentences based on prompt and tone by LLM
+      tags:
+        - sentence generation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                prompt:
+                  type: string
+                tone:
+                  type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sentences:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        text_en:
+                          type: string
+                        text_jp:
+                          type: string
+                        tone:
+                          type: string
+        '400':
+          $ref: '#/components/responses/Error'
+        '500':
+          $ref: '#/components/responses/Error'
+  /sentence-groups:
+    get:
+      summary: List all sentence groups
+      tags:
+        - sentence group
+      parameters:
+        - $ref: '#/components/parameters/paginationToken'
+        - $ref: '#/components/parameters/pageSize'
+        - $ref: '#/components/parameters/sentenceGroupSort'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:    
+              schema:
+                type: object
+                properties:
+                  sentence_groups:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SentenceGroup'
+                  pagination:
+                    $ref: '#/components/schemas/PaginationResponse'
+        '400':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '500':
+          $ref: '#/components/responses/Error'
+    post:
+      summary: Create a new sentence group
+      tags:
+        - sentence group
+      security:
+        - Bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SentenceGroupInput'
+      responses:
+        '201':
+          description: Sentence group created
+        '400':
+          $ref: '#/components/responses/Error'
+        '500':
+          $ref: '#/components/responses/Error'
+  /sentence-groups/{id}:
+    get:
+      summary: Get a sentence group by ID
+      tags:
+        - sentence group
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SentenceGroup'
+        '404':
+          $ref: '#/components/responses/Error'
+        '500':
+          $ref: '#/components/responses/Error'
+    put:
+      summary: Update a sentence group by ID
+      tags:
+        - sentence group
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SentenceGroupInput'
+      responses:
+        '200':
+          description: Sentence group updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SentenceGroup'
+        '400':
+          $ref: '#/components/responses/Error'
+        '500':
+          $ref: '#/components/responses/Error'
+    delete:
+      summary: Delete a sentence group by ID
+      tags:
+        - sentence group
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Sentence group deleted
+        '404':
+          $ref: '#/components/responses/Error'
+        '500':
+          $ref: '#/components/responses/Error'
+  
+  /sentence-groups/{groupId}/sentences:
+    get:
+      summary: List all sentences in a group
+      tags:
+        - sentence
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/paginationToken'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sentences:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Sentence'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '400':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '500':
+          $ref: '#/components/responses/Error'
+    post:
+      summary: Create a new sentence in a group
+      tags:
+        - sentence
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SentenceCreate'
+      responses:
+        '201':
+          description: Sentence created
+        '400':
+          $ref: '#/components/responses/Error'
+        '500':
+          $ref: '#/components/responses/Error'
+  /sentence-groups/{groupId}/sentences/{sentenceId}:
+    get:
+      summary: Get a sentence by ID
+      tags:
+        - sentence
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: sentenceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/Sentence'
+        '404':
+          $ref: '#/components/responses/Error'
+        '500':
+          $ref: '#/components/responses/Error'
+    put:
+      summary: Update a sentence by ID
+      tags:
+        - sentence
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: sentenceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SentenceInput'
+      responses:
+        '200':
+          description: Sentence updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sentence'
+        '400':
+          $ref: '#/components/responses/Error'
+        '500':
+          $ref: '#/components/responses/Error'
+    delete:
+      summary: Delete a sentence by ID
+      description: |
+        Delete a sentence by ID
+        This API updates ``is_active`` to ``false``
+      tags:
+        - sentence
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: sentenceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Sentence deleted
+        '404':
+          $ref: '#/components/responses/Error'
+        '500':
+          $ref: '#/components/responses/Error'
+  /sentence-groups/{groupId}/sentences/{sentenceId}/reputation:increment:
+    post:
+      summary: Increment the reputation of a sentence
+      tags:
+        - sentence
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: sentenceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Reputation incremented
+        '404':
+          $ref: '#/components/responses/Error'
+        '500':
+          $ref: '#/components/responses/Error'
+  
+components:
+  parameters:
+    paginationToken:
+      name: paginationToken
+      in: query
+      description: Token for pagination
+      schema:
+        type: string
+    pageSize:
+      name: pageSize
+      in: query
+      description: Number of items per page
+      schema:
+        type: string
+        minimum: 1
+        maximum: 100
+        default: 20
+    sentenceGroupSort:
+      name: sort
+      in: query
+      description: Sort criteria for sentence groups
+      schema:
+        $ref: '#/components/schemas/SentenceGroupSort'
+
+  schemas:
+    Pagination:
+      type: object
+      properties:
+        nextToken:
+          type: string
+          nullable: true
+    PaginationResponse:
+      type: object
+      properties:
+        pageToken:
+          type: string
+          nullable: true
+        nextPageToken:
+          type: string
+          nullable: true
+      
+    SentenceGroup:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        total_reputation:
+          type: integer
+        is_active:
+          type: boolean
+          default: false
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    SentenceGroupInput:
+      type: object
+      required:
+        - title
+        - is_public
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+
+    Sentence:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        group_id:
+          type: string
+          format: uuid
+        text_en:
+          type: string
+        text_jp:
+          type: string          
+        tone:
+          enum:
+            - CASUAL
+            - FORMAL
+          type: string
+        reputation:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+
+    SentenceCreate:
+      type: object
+      $ref: '#/components/schemas/SentenceInput'
+
+    SentenceInput:
+      type: object
+      required:
+        - text_en
+        - text_jp
+        - tone
+      properties:
+        text_en:
+          type: string
+        text_jp:
+          type: string
+        tone:
+          enum:
+            - CASUAL
+            - FORMAL
+          type: string
+
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+
+    SentenceGroupSort:
+      type: string
+      enum: [title_asc, title_desc, total_reputation_asc, total_reputation_desc, created_at_asc, created_at_desc]
+
+  securitySchemes:
+    Bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+    Error:
+      description: Error response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
