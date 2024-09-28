@@ -21,6 +21,9 @@ paths:
           application/json:
             schema:
               type: object
+              required:
+                - prompt
+                - tone
               properties:
                 prompt:
                   type: string
@@ -33,11 +36,17 @@ paths:
             application/json:
               schema:
                 type: object
+                required:
+                  - sentences
                 properties:
                   sentences:
                     type: array
                     items:
                       type: object
+                      required:
+                        - text_en
+                        - text_jp
+                        - tone
                       properties:
                         text_en:
                           type: string
@@ -65,6 +74,9 @@ paths:
             application/json:    
               schema:
                 type: object
+                required:
+                  - sentence_groups
+                  - pagination
                 properties:
                   sentence_groups:
                     type: array
@@ -375,16 +387,27 @@ components:
           nullable: true
     PaginationResponse:
       type: object
+      required:
+        - pageToken
       properties:
         pageToken:
           type: string
-          nullable: true
+          nullable: false
+          format: uuid
         nextPageToken:
           type: string
           nullable: true
-      
+          format: uuid
     SentenceGroup:
       type: object
+      required:
+        - id
+        - title
+        - description
+        - total_reputation
+        - is_active
+        - created_at
+        - updated_at
       properties:
         id:
           type: string
